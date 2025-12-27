@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hava & Valyuta - Real-time Məlumatlar | Bakı Hava Durumu | Döviz Kursları</title>
+    <meta name="description" content="Azərbaycan şəhərləri üçün real-time hava durumu proqnozu, döviz məzənnələri, 7 günlük hava forecast. Bakı, Gəncə, Sumqayıt və digər rayonlar.">
+    <meta name="keywords" content="hava durumu, hava proqnozu, döviz kursu, USD AZN, EUR AZN, Bakı hava durumu, Azərbaycan hava, weather forecast, currency rates">
+    <meta name="author" content="WeatherHub Azerbaijan">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://weatherhub.az/">
+    <meta property="og:title" content="Hava Durumu & Döviz Kursları - WeatherHub Azərbaycan">
+    <meta property="og:description" content="Azərbaycan üçün ən dəqiq hava durumu və döviz məlumatları">
+    <meta property="og:image" content="https://weatherhub.az/images/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://weatherhub.az/">
+    <meta property="twitter:title" content="Hava Durumu & Döviz Kursları - WeatherHub Azərbaycan">
+    <meta property="twitter:description" content="Azərbaycan üçün ən dəqiq hava durumu və döviz məlumatları">
+    <meta property="twitter:image" content="https://weatherhub.az/images/twitter-image.jpg">
+    
+    <!-- AdSense Head Code -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXX"
+            crossorigin="anonymous"></script>
+    <meta name="google-adsense-account" content="ca-pub-XXXXXXXXXX">
+    
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-effect { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .currency-ticker { animation: scroll 20s linear infinite; }
+        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        
+        /* AdSense Responsive Styles */
+        .adsense-container { text-align: center; margin: 20px 0; }
+        .adsense-responsive { display: inline-block; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Header with Currency Ticker -->
+    <header class="gradient-bg shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-lg px-3 py-2 backdrop-blur-sm border border-yellow-400/30">
+                        <i class="fas fa-cloud-sun text-2xl text-yellow-300 animate-pulse"></i>
+                        <span class="text-white font-bold text-lg">WeatherHub</span>
+                    </div>
+                    
+                    <div class="relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg opacity-75 group-hover:opacity-100 blur transition duration-300"></div>
+                        <div class="relative flex items-center space-x-2 bg-gray-800/50 backdrop-blur-md rounded-lg px-4 py-2 border border-gray-600/50">
+                            <i class="fas fa-globe text-blue-400"></i>
+                            <select id="language-selector" class="bg-transparent text-white text-sm font-medium focus:outline-none cursor-pointer">
+                                <option value="az" class="bg-gray-800">AZ</option>
+                                <option value="en" class="bg-gray-800">EN</option>
+                                <option value="tr" class="bg-gray-800">TR</option>
+                                <option value="ru" class="bg-gray-800">RU</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-sm">
+                    <span id="current-time" class="font-medium"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Currency Ticker -->
+        <div class="bg-black bg-opacity-30 py-2 overflow-hidden">
+            <div id="currency-ticker" class="currency-ticker whitespace-nowrap text-sm">
+                <!-- Currency rates will be loaded here -->
+            </div>
+        </div>
+    </header>
+
+    <!-- TOP BANNER AD - Optimize Boyut -->
+    <div class="bg-gray-800 py-2 border-b border-gray-700">
+        <div class="container mx-auto px-4">
+            <div class="adsense-container">
+                <!-- AdSense Top Banner 728x90 -->
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:728px;height:90px"
+                     data-ad-client="ca-pub-XXXXXXXXXX"
+                     data-ad-slot="XXXXXXXXXX"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- City Selection -->
+        <div class="mb-8">
+            <div class="glass-effect rounded-xl p-6">
+                <h2 class="text-xl font-semibold mb-4">Şəhər Seçimi</h2>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Azərbaycan Rayonları</label>
+                        <select id="azerbaijan-select" class="w-full bg-gray-800 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Rayon seçin...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Dünya Paytaxtları</label>
+                        <select id="world-select" class="w-full bg-gray-800 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Paytaxt seçin...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather Display -->
+        <div class="grid md:grid-cols-3 gap-8 mb-8">
+            <!-- Main Weather Content -->
+            <div class="md:col-span-2 space-y-8">
+                <div class="glass-effect rounded-xl p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-semibold">Hava Proqnozu</h3>
+                        <button onclick="refreshWeather()" class="text-blue-400 hover:text-blue-300">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div id="weather-display" class="text-center py-8">
+                        <div class="text-6xl mb-4">
+                            <i class="fas fa-cloud-sun text-yellow-400"></i>
+                        </div>
+                        <p class="text-gray-400">Şəhər seçin</p>
+                    </div>
+                </div>
+
+                <!-- Currency Exchange Rates -->
+                <div class="glass-effect rounded-xl p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-semibold">Valyuta Məzənnələri</h3>
+                        <button onclick="refreshCurrency()" class="text-blue-400 hover:text-blue-300">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div id="currency-display" class="space-y-3">
+                        <!-- Currency rates will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIDEBAR AD - Optimize Boyut -->
+            <div class="md:col-span-1">
+                <div class="sticky top-4 space-y-4">
+                    <!-- Sidebar Ad 300x250 -->
+                    <div class="bg-gray-800 rounded-xl p-3">
+                        <div class="adsense-container">
+                            <ins class="adsbygoogle"
+                                 style="display:inline-block;width:300px;height:250px"
+                                 data-ad-client="ca-pub-XXXXXXXXXX"
+                                 data-ad-slot="XXXXXXXXXX"></ins>
+                            <script>
+                                 (adsbygoogle = window.adsbygoogle || []).push({});
+                            </script>
+                        </div>
+                    </div>
+                    
+                    <!-- Side Ad 300x600 -->
+                    <div class="bg-gray-800 rounded-xl p-3">
+                        <div class="adsense-container">
+                            <ins class="adsbygoogle"
+                                 style="display:inline-block;width:300px;height:600px"
+                                 data-ad-client="ca-pub-XXXXXXXXXX"
+                                 data-ad-slot="XXXXXXXXXX"></ins>
+                            <script>
+                                 (adsbygoogle = window.adsbygoogle || []).push({});
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Forecast -->
+        <div class="glass-effect rounded-xl p-6 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold">Həftəlik Proqnoz</h3>
+                <button onclick="refreshForecast()" class="text-blue-400 hover:text-blue-300">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <div id="forecast-display" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                <!-- Forecast cards will be loaded here -->
+            </div>
+        </div>
+
+        <!-- IN-CONTENT AD - Yüksek Engagement -->
+        <div class="bg-gray-800 rounded-xl p-6 mb-8">
+            <div class="adsense-container">
+                <!-- In-Content Ad -->
+                <ins class="adsbygoogle adsense-responsive"
+                     style="display:block"
+                     data-ad-client="ca-pub-XXXXXXXXXX"
+                     data-ad-slot="XXXXXXXXXX"
+                     data-ad-format="fluid"
+                     data-ad-layout-key="-gw-3+1f-3d+2z"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+        </div>
+
+        <!-- Modern Ad Space 1 -->
+        <div class="bg-gradient-to-br from-purple-900/30 to-pink-900/30 rounded-xl p-8 text-center mb-8 backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300">
+            <div class="text-purple-300">
+                <i class="fas fa-ad text-5xl mb-3 animate-pulse"></i>
+                <p class="text-lg font-semibold mb-2">Premium Reklam Alanı</p>
+                <p class="text-sm opacity-75">Burada sizin reklamınız görünə bilər</p>
+            </div>
+        </div>
+
+        <!-- Side Ads Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-gradient-to-r from-blue-900/30 to-cyan-900/30 rounded-lg p-6 text-center backdrop-blur-sm border border-blue-500/20">
+                <i class="fas fa-bullhorn text-3xl text-blue-400 mb-2"></i>
+                <p class="text-sm text-blue-300 font-medium">Reklam Alanı A</p>
+            </div>
+            <div class="bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-lg p-6 text-center backdrop-blur-sm border border-green-500/20">
+                <i class="fas fa-star text-3xl text-green-400 mb-2"></i>
+                <p class="text-sm text-green-300 font-medium">Reklam Alanı B</p>
+            </div>
+            <div class="bg-gradient-to-r from-orange-900/30 to-red-900/30 rounded-lg p-6 text-center backdrop-blur-sm border border-orange-500/20">
+                <i class="fas fa-fire text-3xl text-orange-400 mb-2"></i>
+                <p class="text-sm text-orange-300 font-medium">Reklam Alanı C</p>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass-effect rounded-lg p-4 text-center">
+                <i class="fas fa-temperature-high text-2xl text-orange-400 mb-2"></i>
+                <p class="text-sm text-gray-400">Temperatur</p>
+                <p id="stat-temp" class="text-xl font-semibold">--°C</p>
+            </div>
+            <div class="glass-effect rounded-lg p-4 text-center">
+                <i class="fas fa-tint text-2xl text-blue-400 mb-2"></i>
+                <p class="text-sm text-gray-400">Rütubət</p>
+                <p id="stat-humidity" class="text-xl font-semibold">--%</p>
+            </div>
+            <div class="glass-effect rounded-lg p-4 text-center">
+                <i class="fas fa-wind text-2xl text-gray-400 mb-2"></i>
+                <p class="text-sm text-gray-400">Külək</p>
+                <p id="stat-wind" class="text-xl font-semibold">-- km/s</p>
+            </div>
+            <div class="glass-effect rounded-lg p-4 text-center">
+                <i class="fas fa-dollar-sign text-2xl text-green-400 mb-2"></i>
+                <p class="text-sm text-gray-400">USD/AZN</p>
+                <p id="stat-usd" class="text-xl font-semibold">--</p>
+            </div>
+        </div>
+
+        <!-- Bottom Ad Banner -->
+        <div class="bg-gradient-to-r from-indigo-900/40 to-purple-900/40 rounded-xl p-6 text-center mb-8 backdrop-blur-md border border-indigo-500/30">
+            <div class="flex items-center justify-center space-x-4">
+                <i class="fas fa-rocket text-4xl text-indigo-400 animate-bounce"></i>
+                <div class="text-indigo-300">
+                    <p class="text-lg font-bold">Sponsor Reklam Alanı</p>
+                    <p class="text-sm opacity-75">724x90 banner reklam üçün mükəmməl yer</p>
+                </div>
+                <i class="fas fa-rocket text-4xl text-purple-400 animate-bounce"></i>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer with Ad Space -->
+    <footer class="bg-gray-800 mt-12 py-8">
+        <div class="container mx-auto px-4">
+            <div class="bg-gradient-to-t from-gray-900/50 to-transparent rounded-xl p-6 text-center mb-6 backdrop-blur-sm border border-gray-600/30">
+            <div class="text-gray-400">
+                <i class="fas fa-crown text-4xl text-yellow-500 mb-3"></i>
+                <p class="text-lg font-semibold text-yellow-400">Premium Footer Reklam</p>
+                <p class="text-sm opacity-75">Footer'da görünürlük üçün ən yaxşı yer</p>
+            </div>
+        </div>
+            <div class="text-center text-gray-400">
+                <p>&copy; 2024 Hava & Valyuta. Real-time məlumatlar.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MOBILE STICKY AD - Yüksek CPM -->
+    <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-2 md:hidden z-50">
+        <div class="adsense-container">
+            <!-- Mobile Sticky Ad -->
+            <ins class="adsbygoogle adsense-responsive"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXX"
+                 data-ad-slot="XXXXXXXXXX"
+                 data-ad-format="horizontal"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
+    </div>
+
+    <!-- AUTO ADS SCRIPT -->
+    <script>
+        (adsbygoogle = window.adsbygoogle || []).push({
+            google_ad_client: "ca-pub-XXXXXXXXXX",
+            enable_page_level_ads: true
+        });
+    </script>
+
+    <script>
+        // Load regions
+        fetch('/api/regions')
+            .then(response => response.json())
+            .then(data => {
+                const azerbaijanSelect = document.getElementById('azerbaijan-select');
+                const worldSelect = document.getElementById('world-select');
+                
+                data.azerbaijan.forEach(region => {
+                    const option = new Option(region, region);
+                    azerbaijanSelect.add(option);
+                });
+                
+                data.world.forEach(capital => {
+                    const option = new Option(`${capital.name} (${capital.country})`, capital.name);
+                    worldSelect.add(option);
+                });
+            });
+
+        // Update time - ULTRA MODERN VERSION
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('az-AZ', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+            });
+            
+            const dayString = now.toLocaleDateString('az-AZ', { 
+                weekday: 'short' 
+            }).toUpperCase();
+            
+            const dateString = now.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric' 
+            }).replace(' ', ' ');
+            
+            document.getElementById('current-time').innerHTML = 
+                `<div class="flex items-center space-x-2">
+                    <span class="text-yellow-300 font-bold text-lg tracking-wider">${timeString}</span>
+                    <span class="text-gray-400 text-xs">•</span>
+                    <span class="text-blue-300 font-medium text-sm">${dayString}</span>
+                    <span class="text-cyan-400 font-semibold text-sm">${dateString}</span>
+                </div>`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Weather functions
+        document.getElementById('azerbaijan-select').addEventListener('change', (e) => {
+            if (e.target.value) loadWeather(e.target.value);
+        });
+
+        document.getElementById('world-select').addEventListener('change', (e) => {
+            if (e.target.value) loadWeather(e.target.value);
+        });
+
+        function loadWeather(city) {
+            fetch(`/api/weather/${city}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('weather-display').innerHTML = `
+                            <div class="text-6xl mb-4">
+                                <i class="fas fa-exclamation-triangle text-red-400"></i>
+                            </div>
+                            <p class="text-red-400">${data.error}</p>
+                        `;
+                        return;
+                    }
+                    
+                    document.getElementById('weather-display').innerHTML = `
+                        <div class="text-6xl mb-4">
+                            <i class="fas fa-${getWeatherIcon(data.description)} text-yellow-400"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">${data.city}</h3>
+                        <div class="text-4xl font-bold mb-2">${data.temperature}°C</div>
+                        <p class="text-gray-300 mb-4">${data.description}</p>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <i class="fas fa-tint text-blue-400"></i> Rütubət: ${data.humidity}%
+                            </div>
+                            <div>
+                                <i class="fas fa-wind text-gray-400"></i> Külək: ${data.wind} km/s
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Update stats
+                    document.getElementById('stat-temp').textContent = `${data.temperature}°C`;
+                    document.getElementById('stat-humidity').textContent = `${data.humidity}%`;
+                    document.getElementById('stat-wind').textContent = `${data.wind} km/s`;
+                    
+                    // Load forecast
+                    loadForecast(city);
+                });
+        }
+
+        function getWeatherIcon(description) {
+            const icons = {
+                'Partly Cloudy': 'cloud-sun',
+                'Sunny': 'sun',
+                'Cloudy': 'cloud',
+                'Rainy': 'cloud-rain',
+                'Snowy': 'snowflake',
+                'Günəşli': 'sun',
+                'Qismən buludlu': 'cloud-sun',
+                'Buludlu': 'cloud',
+                'Yağışlı': 'cloud-rain',
+                'Qarlı': 'snowflake',
+                'Soyuq': 'snowflake'
+            };
+            return icons[description] || 'cloud';
+        }
+
+        function refreshWeather() {
+            const azerbaijan = document.getElementById('azerbaijan-select').value;
+            const world = document.getElementById('world-select').value;
+            if (azerbaijan) loadWeather(azerbaijan);
+            if (world) loadWeather(world);
+        }
+
+        // Currency functions
+        function loadCurrency() {
+            fetch('/api/currency')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('currency-display').innerHTML = `
+                            <p class="text-red-400 text-center">${data.error}</p>
+                        `;
+                        return;
+                    }
+                    
+                    const rates = data.rates;
+                    const mainCurrencies = ['EUR', 'GBP', 'JPY', 'TRY', 'RUB'];
+                    
+                    let html = '';
+                    mainCurrencies.forEach(currency => {
+                        const rate = rates[currency];
+                        if (rate) {
+                            html += `
+                                <div class="flex justify-between items-center p-3 bg-gray-800 rounded-lg">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-lg font-semibold">${currency}</span>
+                                        <span class="text-gray-400">/ USD</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="font-semibold">${rate.toFixed(4)}</span>
+                                        <span class="text-xs text-gray-400 ml-2">${getChangeIndicator()}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    document.getElementById('currency-display').innerHTML = html;
+                    
+                    // Update ticker
+                    const tickerData = mainCurrencies.map(currency => 
+                        `${currency}/USD: ${rates[currency]?.toFixed(4) || '--'}`
+                    ).join(' • ');
+                    document.getElementById('currency-ticker').textContent = tickerData;
+                    
+                    // Update USD/AZN stat (demo)
+                    document.getElementById('stat-usd').textContent = '1.7000';
+                });
+        }
+
+        function getChangeIndicator() {
+            const indicators = ['↑', '↓', '→'];
+            const colors = ['text-green-400', 'text-red-400', 'text-gray-400'];
+            const random = Math.floor(Math.random() * 3);
+            return `<span class="${colors[random]}">${indicators[random]}</span>`;
+        }
+
+        function refreshCurrency() {
+            loadCurrency();
+        }
+
+        // Forecast functions
+        function loadForecast(city) {
+            fetch(`/api/forecast/${city}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('forecast-display').innerHTML = `
+                            <div class="col-span-full text-center text-red-400">
+                                <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                                <p>${data.error}</p>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    const forecast = data.forecast;
+                    let html = '';
+                    
+                    forecast.forEach(day => {
+                        const date = new Date(day.date);
+                        const dayName = date.toLocaleDateString('az-AZ', { weekday: 'short' });
+                        const dayNum = date.getDate();
+                        
+                        html += `
+                            <div class="bg-gray-800 rounded-lg p-3 text-center hover:bg-gray-700 transition-colors">
+                                <div class="text-xs text-gray-400 mb-1">${dayName}</div>
+                                <div class="text-sm font-semibold mb-2">${dayNum}</div>
+                                <div class="text-2xl mb-2">
+                                    <i class="fas fa-${day.icon} text-yellow-400"></i>
+                                </div>
+                                <div class="text-xs mb-1">${day.description}</div>
+                                <div class="text-sm font-semibold">
+                                    <span class="text-orange-400">${day.temp_max}°</span>
+                                    <span class="text-blue-400 ml-1">${day.temp_min}°</span>
+                                </div>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    <i class="fas fa-wind text-xs"></i> ${day.wind}km/h
+                                    <span class="ml-2"><i class="fas fa-tint text-xs"></i> ${day.humidity}%</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    document.getElementById('forecast-display').innerHTML = html;
+                });
+        }
+
+        function refreshForecast() {
+            const azerbaijanSelect = document.getElementById('azerbaijan-select');
+            const worldSelect = document.getElementById('world-select');
+            const city = azerbaijanSelect.value || worldSelect.value;
+            if (city) loadForecast(city);
+        }
+
+        // Language switching
+        document.getElementById('language-selector').addEventListener('change', (e) => {
+            const lang = e.target.value;
+            fetch(`/api/set-language/${lang}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // Reload to apply new language
+                    }
+                });
+        });
+
+        
+        // Initial load
+        loadCurrency();
+    </script>
+</body>
+</html>
